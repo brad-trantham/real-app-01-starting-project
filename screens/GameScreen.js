@@ -1,5 +1,5 @@
 import React, {useState, useRef, useEffect} from 'react'
-import {View, Text, StyleSheet, Alert} from 'react-native'
+import {View, Text, StyleSheet, Alert, ScrollView} from 'react-native'
 
 import { Ionicons } from '@expo/vector-icons'
 
@@ -7,6 +7,7 @@ import NumberContainer from '../components/NumberContainer'
 import Card from '../components/Card'
 import DefaultStyles from '../constants/default-styles'
 import MainButton from '../components/MainButton'
+import BodyText from '../components/BodyText'
 
 const generateRandomBetween = (min, max, exclude) => {
     min = Math.ceil(min)
@@ -19,9 +20,17 @@ const generateRandomBetween = (min, max, exclude) => {
     }
 }
 
+const renderListItem = (value, numOfRound) => (
+    <View key={value} style={styles.listItem}>
+        <BodyText>#{numOfRound}</BodyText>
+        <BodyText>{value}</BodyText>
+    </View>
+)
+
 const GameScreen = props => {
-    const [currentGuess, setCurrentGuess] = useState(generateRandomBetween(1, 99, props.userChoice))
-    const [rounds, setRounds] = useState(0)
+    const initialGuess = generateRandomBetween(1, 99, props.userChoice)
+    const [currentGuess, setCurrentGuess] = useState(initialGuess)
+    const [pastGuesses, setPastGuesses] = useState([initialGuess])
     const currentLow = useRef(1)
     const currentHigh = useRef(99)
 
@@ -32,7 +41,7 @@ const GameScreen = props => {
     // if you declare dependencies then its re-run when any of its declared dependencies changes
     useEffect(() => {
         if(currentGuess === props.userChoice) {
-            props.onGameOver(rounds)
+            props.onGameOver(pastGuesses.length)
         }
     },
     // you don't want to just declare props as a dependency because then this is rerun
@@ -49,12 +58,15 @@ const GameScreen = props => {
             currentHigh.current = currentGuess
         }
         if("HIGHER" === direction) {
-            currentLow.current = currentGuess
+            currentLow.current = currentGuess + 1
         }
 
         const nextNum = generateRandomBetween(currentLow.current, currentHigh.current, currentGuess)
         setCurrentGuess(nextNum)
-        setRounds(currentRounds => currentRounds + 1)
+        //setRounds(currentRounds => currentRounds + 1)
+        // we have to use nextNum here, currentGuess wouldn't work because React
+        // hasn't updated the state yet
+        setPastGuesses(curPastGuesses => [nextNum, ...curPastGuesses])
     }
 
     return (
@@ -65,6 +77,11 @@ const GameScreen = props => {
                 <MainButton onPress={nextGuessHandler.bind(this, 'LOWER')}><Ionicons name='ios-arrow-down' size={24} color='white'/></MainButton>
                 <MainButton onPress={nextGuessHandler.bind(this, 'HIGHER')}><Ionicons name='ios-arrow-up' size={24} color='white'/></MainButton>
             </Card>
+            <View style={styles.listContainer}>
+                <ScrollView contentContainerStyle={styles.list}>
+                    {pastGuesses.map((guess, index) => renderListItem(guess, pastGuesses.length - index))}
+                </ScrollView>
+            </View>
         </View>
     )
 }
@@ -77,10 +94,29 @@ const styles = StyleSheet.create({
    },
    buttonContainer: {
        flexDirection: 'row',
-       justifyContent: 'space-around',
+       justifyContent: 'space-between',
        marginTop: 20,
        width: 400,
        maxWidth: '90%'
+   },
+   listItem: {
+       borderColor: '#ccc',
+       borderWidth: 1,
+       padding: 15,
+       marginVertical: 10,
+       backgroundColor: 'white',
+       flexDirection: 'row',
+       justifyContent: 'space-between',
+       width: '60%'
+   },
+   listContainer: {
+       flex: 1,
+       width: '80%'
+   },
+   list: {
+       flexGrow: 1,
+       alignItems: 'center',
+       justifyContent: 'flex-end'
    }
 })
 

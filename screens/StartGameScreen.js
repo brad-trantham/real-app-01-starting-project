@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, StyleSheet, Text, TouchableWithoutFeedback, Button, Keyboard, Alert} from 'react-native';
+import {View, StyleSheet, Text, TouchableWithoutFeedback, Button, Keyboard, Alert, Dimensions} from 'react-native';
 
 import Card from '../components/Card';
 import Colors from '../constants/colors';
@@ -86,8 +86,9 @@ const styles = StyleSheet.create({
         fontFamily: 'open-sans-bold'
     },
     inputContainer: {
-        width: 300,
-        maxWidth: '80%',
+        width: '80%',
+        maxWidth: '95%',
+        minWidth: 300,
         alignItems: 'center'
     },
     ButtonContainer: {
@@ -97,7 +98,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15
     },
     button: {
-        width: 100
+        // this particular problem could also be solved by a width percentage
+        //width: 100
+        // 'window' and 'screen' are the same on iOS but the status bar on Android makes a difference
+        width: Dimensions.get('window').width / 4
     },
     input: {
         width: 50,
